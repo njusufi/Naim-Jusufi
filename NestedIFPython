@@ -1,0 +1,29 @@
+amt = int(input("Enter Sale Amount: "))
+disc = 5.00
+
+#$5 off and 30% discound
+
+if(amt>0):
+    if amt<=9.99:
+       shipping=5.95
+    else:
+        if 10<=amt<=29.99:
+            shipping=7.95
+        else:
+            if 30<=amt<=49.99:
+                shipping=11.95
+            else:
+                shipping=0
+
+
+    print("\nShipping:        $",shipping)
+    print("Discount:         $5.00")
+    print("Coupon Code(30%): $",(.3*(amt+shipping-5.00)))
+    net_pay=(amt+shipping-disc-(.3*(amt+shipping-5.00)))
+
+    print("\nNet Pay:         $",net_pay)
+    tax = .06*net_pay
+    print("Tax:              $",tax)
+    print("\nTotal Pay:       $",net_pay + tax)
+else:
+    print("Invalid Amount")
