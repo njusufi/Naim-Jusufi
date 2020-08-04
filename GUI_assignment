@@ -1,0 +1,47 @@
+from tkinter import *
+from tkinter import messagebox
+import random
+secretNum=0
+numberOfGuess=0
+
+def new_game():
+    global secretNum
+    global numberOfGuess
+    secretNum=random.randint(1,101)
+    numberOfGuess=0
+
+def checkGuess():
+    global secretNum
+    global numberOfGuess
+    userGuess=t.get("1.0",END)
+    try:
+        num = int(userGuess)
+        numberOfGuess+=1
+        if(num==secretNum):
+            messagebox.showinfo("Congratulations","It took you "+str(numberOfGuess)+" times.")
+            new_game()
+            t.delete("1.0", "end")
+        elif(num<secretNum):
+            t.delete("1.0", "end")
+            messagebox.showinfo("Report",str(num)+" is too low")
+        else:
+            t.delete("1.0", "end")
+            messagebox.showinfo("Report",str(num)+" is too high")
+    except ValueError:
+        t.delete("1.0", "end")
+        messagebox.showinfo("Opps","Invalid Number")
+
+
+new_game()
+Game = Tk()
+Game.geometry('150x140')
+
+label_1 = Label(Game, text="Enter Your Guess:",font=("bold", 13))
+label_1.place(x=10,y=10)
+
+t = Text(Game, height=2,width=16)
+t.place(x=10,y=50)
+
+Button(Game, text='Enter',width=8,height=2,command=checkGuess).place(x=40,y=100)
+
+Game.mainloop()
