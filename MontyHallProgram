@@ -1,0 +1,133 @@
+from tkinter import Tk, Canvas, Button, PhotoImage
+import random
+
+
+DOOR_1 = 1
+DOOR_2 = 2
+DOOR_3 = 3
+DOORS = (DOOR_1, DOOR_2, DOOR_3)
+
+
+class MontyHall(Tk):
+    def __init__(self):
+        Tk.__init__(self)
+        self.total_counter = 0
+        self.winning_switchers = 0
+        self.winning_non_switchers = 0
+        self.geometry("600x600")
+        self.title("Monty Hall")
+        self.rowconfigure(2, weight=1)
+        self.canvas = Canvas(self, width=600, height=500)
+        self.text = self.canvas.create_text(300, 120)
+        self.answer = self.canvas.create_text(300, 140)
+        self.text_switching = self.canvas.create_text(300, 30)
+        self.text_not_switching = self.canvas.create_text(300, 60)
+        self.door1_pic = PhotoImage(file='door1.gif')
+        self.door2_pic = PhotoImage(file='door2.gif')
+        self.door3_pic = PhotoImage(file='door3.gif')
+        self.door1_show = self.canvas.create_image(100, 350, image=self.door1_pic)
+        self.door2_show = self.canvas.create_image(300, 350, image=self.door2_pic)
+        self.door3_show = self.canvas.create_image(500, 350, image=self.door3_pic)
+        self.canvas.grid(row=2, sticky='s')
+        self.canvas.tag_bind(self.door1_show, "<Button-1>", self.door1)
+        self.canvas.tag_bind(self.door2_show, "<Button-1>", self.door2)
+        self.canvas.tag_bind(self.door3_show, "<Button-1>", self.door3)
+
+    def door1(self, *args):
+        self.canvas.itemconfig(self.text, text="you chose door number 1")
+        self.choose_door(DOOR_1)
+
+    def door2(self, *args):
+        self.canvas.itemconfig(self.text, text="you chose door number 2")
+        self.choose_door(DOOR_2)
+
+    def door3(self, *args):
+        self.canvas.itemconfig(self.text, text="you chose door number 3")
+        self.choose_door(DOOR_3)
+
+    def choose_door(self, door_chosen):
+        self.block_doors(4)
+        self.canvas.itemconfig(self.answer, text="")
+        correct_door = random.choice(DOORS)
+        if correct_door != door_chosen:
+            close = random.choice(list(set(DOORS) - {correct_door, door_chosen}))
+        else:
+            close = random.choice(list(set(DOORS) - {door_chosen}))
+        self.block_doors(close)
+        self.options(door_chosen, correct_door, close)
+
+    def block_doors(self, block_door_number):
+        if block_door_number == 4:
+            self.canvas.tag_unbind(self.door1_show, "<Button-1>")
+            self.canvas.tag_unbind(self.door2_show, "<Button-1>")
+            self.canvas.tag_unbind(self.door3_show, "<Button-1>")
+        if block_door_number == 3:
+            self.canvas.delete(self.door3_show)
+        elif block_door_number == 2:
+            self.canvas.delete(self.door2_show)
+        elif block_door_number == 1:
+            self.canvas.delete(self.door1_show)
+
+    def unhide_door(self, open_door):
+        if open_door == 1:
+            self.canvas.tag_bind(self.door2_show, "<Button-1>", self.door2)
+            self.canvas.tag_bind(self.door3_show, "<Button-1>", self.door3)
+            self.door1_show = self.canvas.create_image(100, 350, image=self.door1_pic)
+            self.canvas.tag_bind(self.door1_show, "<Button-1>", self.door1)
+        if open_door == 2:
+            self.canvas.tag_bind(self.door1_show, "<Button-1>", self.door1)
+            self.canvas.tag_bind(self.door3_show, "<Button-1>", self.door3)
+            self.door2_show = self.canvas.create_image(300, 350, image=self.door2_pic)
+            self.canvas.tag_bind(self.door2_show, "<Button-1>", self.door2)
+        if open_door == 3:
+            self.canvas.tag_bind(self.door1_show, "<Button-1>", self.door1)
+            self.canvas.tag_bind(self.door2_show, "<Button-1>", self.door2)
+            self.door3_show = self.canvas.create_image(500, 350, image=self.door3_pic)
+            self.canvas.tag_bind(self.door3_show, "<Button-1>", self.door3)
+
+    def options(self, door_number, correct_door, closed_door):
+        self.total_counter += 1
+
+        def show_results():
+            self.canvas.itemconfig(self.text_switching,
+                                   text='Switching won {0:5} times out of {1} ({2:.2f}% of the time)'
+                                   .format(self.winning_switchers, self.total_counter,
+                                           (self.winning_switchers / self.total_counter * 100)))
+            self.canvas.itemconfig(self.text_not_switching,
+                                   text='Not switching won {0:5} times out of {1} ({2:.2f}% of the time)'.
+                                   format(self.winning_non_switchers, self.total_counter,
+                                          (self.winning_non_switchers / self.total_counter * 100)))
+
+        def change(*args):
+            button1.grid_forget()
+            button2.grid_forget()
+            chosen_door = next(iter(set(DOORS) - {door_number, closed_door}))
+            if chosen_door == correct_door:
+                self.canvas.itemconfig(self.answer, text="you were right")
+                self.winning_switchers += 1
+            else:
+                self.canvas.itemconfig(self.answer, text="you were wrong")
+            self.unhide_door(closed_door)
+
+        def keep(*args):
+            button1.grid_forget()
+            button2.grid_forget()
+            if door_number == correct_door:
+                self.canvas.itemconfig(self.answer, text="you were right")
+                self.winning_non_switchers += 1
+            else:
+                self.canvas.itemconfig(self.answer, text="you were wrong")
+            self.unhide_door(closed_door)
+
+        button1 = Button(self, text='Click to change door')
+        button1.bind("<Button-1>", change)
+        button1.grid(row=0, sticky='w')
+
+        button2 = Button(self, text='Click to keep door')
+        button2.bind("<Button-1>", keep)
+        button2.grid(row=1, sticky='w')
+        show_results()
+
+if __name__ == "__main__":
+    application = MontyHall()
+    application.mainloop()
